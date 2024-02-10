@@ -1,53 +1,45 @@
-// precios unitarios por producto
-const preciosUnitarios = {
-    1: 100,
-    2: 150,
-    3: 200
-};
-
-// historial de costos totales
-const historialCostos = [];
-
-// Función costo total
-function calcularCostoTotal(producto, cantidad) {
-    const precioUnitario = obtenerPrecioUnitario(producto);
-    const costoTotal = calcularCosto(precioUnitario, cantidad);
-
-    // costo total en el historial
-    historialCostos.push(costoTotal);
-
-    return costoTotal;
-}
-
-// precio unitario
-function obtenerPrecioUnitario(producto) {
-    return preciosUnitarios[producto] || 0;
-}
-
-// calcular costo total
-function calcularCosto(precioUnitario, cantidad) {
-    const iva = 0.21;
-    const costoConIva = precioUnitario * cantidad * (1 + iva);
-    const descuento = 50;
-    const costoTotal = costoConIva - descuento;
-    return costoTotal;
-}
-
-// Lógica
 document.addEventListener('DOMContentLoaded', function () {
+    const historialCostos = JSON.parse(localStorage.getItem('historialCostos')) || [];
+
+    async function fetchPreciosUnitarios() {
+        try {
+            const response = await axios.get('./prrecios.json');
+            return response.data.preciosUnitarios;
+        } catch (error) {
+            console.error('Error al obtener los precios unitarios:', error);
+            return {};
+        }
+    }
+
+    function calcularCostoTotal(producto, cantidad, preciosUnitarios) {
+        const precioUnitario = preciosUnitarios[producto] || 0;
+        const costoTotal = calcularCosto(precioUnitario, cantidad);
+        historialCostos.push(costoTotal);
+        localStorage.setItem('historialCostos', JSON.stringify(historialCostos));
+        return costoTotal;
+    }
+
+    function calcularCosto(precioUnitario, cantidad) {
+        const iva = 0.21;
+        const costoConIva = precioUnitario * cantidad * (1 + iva);
+        const descuento = 50;
+        const costoTotal = costoConIva - descuento;
+        return costoTotal;
+    }
+
     const calcularButton = document.getElementById('calcularButton');
-    calcularButton.addEventListener('click', function () {
+    calcularButton.addEventListener('click', async function () {
         let productoSeleccionado = parseInt(document.getElementById('productoInput').value);
         let cantidadSeleccionada = parseInt(document.getElementById('cantidadInput').value);
+        const resultadoElement = document.getElementById('resultado');
 
         if (isNaN(cantidadSeleccionada) || cantidadSeleccionada <= 0) {
-            alert("Ingrese una cantidad válida.");
+            resultadoElement.textContent = "Ingrese una cantidad válida.";
         } else {
-            // Calcular y mostrar total
-            const costoTotal = calcularCostoTotal(productoSeleccionado, cantidadSeleccionada);
-            console.log("El costo total es: " + costoTotal);
+            const preciosUnitarios = await fetchPreciosUnitarios();
+            const costoTotal = calcularCostoTotal(productoSeleccionado, cantidadSeleccionada, preciosUnitarios);
+            resultadoElement.textContent = "El costo total es: " + costoTotal;
 
-            // Mostrar historial de costos
             console.log("Historial de costos: ");
             historialCostos.forEach((costo, index) => {
                 console.log(`Costo ${index + 1}: ${costo}`);
@@ -55,6 +47,3 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
-
-
-
