@@ -1,3 +1,10 @@
+function validarProductoInput() {
+    let productoInput = document.getElementById('productoInput').value.trim(); 
+    if (productoInput !== '' && (productoInput < 1 || productoInput > 3 || isNaN(productoInput))) {
+        alert("Por favor, ingrese un número entre 1 y 3 para el producto.");
+        document.getElementById('productoInput').value = ''; 
+    }
+}
 document.addEventListener('DOMContentLoaded', function () {
     const historialCostos = JSON.parse(localStorage.getItem('historialCostos')) || [];
 
@@ -10,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return {};
         }
     }
-
+    
     function calcularCostoTotal(producto, cantidad, preciosUnitarios) {
         const precioUnitario = preciosUnitarios[producto] || 0;
         const costoTotal = calcularCosto(precioUnitario, cantidad);
